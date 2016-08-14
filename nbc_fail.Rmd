@@ -2,7 +2,9 @@
 title: '\#nbcfail'
 author: "Joe Willage"
 date: "August 11, 2016"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 ---
 
 ```{r, warning=FALSE, include=FALSE, message=FALSE}
