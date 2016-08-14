@@ -1,5 +1,5 @@
 ---
-title: '#nbcfail'
+title: '\#nbcfail'
 author: "Joe Willage"
 date: "August 11, 2016"
 output: html_document
@@ -11,7 +11,7 @@ opts_chunk$set(echo = TRUE, cache = TRUE, cache.path = "cache/", comment = NA, w
                fig.path = "figure/", fig.width = 9, fig.height = 7)
 ```
 
-NBC has taken a lot of heat in the past week for it's coverage of the Olympics, to which they have exclusive broadcast rights. Criticisms have ranged from tape delays, to nationality bias, to commercial frequency, to gender bias. The collective outrage has spawned the popularity of an #nbcfail hashtag on Twitter, which first appeared during the 2012 games. Here we'll analyze patterns of the hasthtag.  
+NBC has taken a lot of heat in the past week for its coverage of the Olympics, to which they have exclusive broadcast rights. Criticisms have ranged from tape delays, to nationality bias, to commercial frequency, to gender bias. The collective outrage has spawned the popularity of an #nbcfail hashtag on Twitter, which first appeared during the 2012 games. Here we'll explore NBC's responsivenes to the hashtag. First, let's analyze its usage.  
 
 ```{r libs, include = FALSE}
 library(twitteR)
@@ -45,12 +45,11 @@ t <- readRDS("dat/t.rds")
 df.time <- data.frame(created = t$created - 60*60*4)
 ```
 
-Tweets were pulled at `r t[1, ]$created`, so that's where the data cuts off (all times Eastern, UTC-4:00). We captured `r prettyNum(nrow(t), big.mark=",")` tweets in that span. 
+Tweets were pulled at Aug 11, 4 PM and go back to Aug 2, 2 PM. So that's where the data cuts off[^1]. We captured `r prettyNum(nrow(t), big.mark=",")` tweets in that span. 
 
 ```{r full, echo = FALSE}
 daily_hourly <- df.time %>% group_by(day = day(created ), hour = hour(created )) %>% 
   summarize(tot = n()) %>% as.data.frame()
-hourly <- daily_hourly %>% group_by(hour) %>% summarize(med = median(tot)) %>% as.data.frame()
 
 ref <- data.frame(day = rep(2:11, each=24), hour = rep(0:23, 10))
 ref <- ref[-(1:4), ]
@@ -68,11 +67,11 @@ ggplot(data = dh, aes(ts, tot)) +
   scale_y_continuous(limits = c(0, 3500), expand= c(0, 0)) + 
   scale_x_discrete(breaks = c("204", "304", "404", "504", "604", "704", "804", "904", "1004", "1104", "1204"),
                    labels = paste("Aug", 2:12)) +
-  labs(x = "time", y = "tweets per hour", 
+  labs(x = "Date", y = "Tweets / Hour", 
        title = "#nbcfail Tweets Per Hour")
 ```
 
-As expected, the biggest spike in #nbcfail tweets is during the opening ceremony, on the evening of Aug 5. The volume of tweets is so much larger at that point, that it makes it hard to visualize the rest of the data. For now, we'll cut the graph off to omit that evening, but we'll come back to it later.  
+The biggest spike in #nbcfail tweets is during the opening ceremony, on the evening of Aug 5. The volume of tweets is so much larger at that point, that it makes it hard to visualize the rest of the data. For now, we'll cut the graph off to omit that evening, but we'll come back to it later.  
 
 ```{r except-opening, echo = FALSE}
 ggplot(data = dh, aes(ts, tot)) + 
@@ -86,22 +85,23 @@ ggplot(data = dh, aes(ts, tot)) +
   scale_y_continuous(limits = c(0, 350), expand= c(0, 0)) + 
   scale_x_discrete(breaks = c("204", "304", "404", "504", "604", "704", "804", "904", "1004", "1104", "1204"),
                    labels = paste("Aug", 2:12), expand = c(0, 0)) +
-  labs(x = "time", y = "tweets per hour", 
+  labs(x = "Date", y = "Tweets / Hour", 
        title = "#nbcfail Tweets Per Hour (Excluding Opening Ceremony)")
 ```
 
 
 We can see that there was some use of the #nbcfail hashtag even before the opening ceremony. The tweets from Aug 3 up to the night of Aug 5 were mostly about the 1-hour delay that NBC announced. There were also a handful of tweets speculating on the resurgance of the #nbcfail hashtag, and complaints about commercials cutting into a soccer game (Olympic soccer started prior to the opening ceremony).  
 
-In the days after the opening ceremony, the hashtag's frequency roughly follows this trend: increases throughout the day, peaking during primetime coverage, and then dying down starting at midnight, reaching it's lowest volume around 6am ET.  
+In the days after the opening ceremony, the hashtag's frequency roughly follows this trend: increases throughout the day, peaking during primetime coverage, and then dying down starting at midnight, reaching its lowest volume around 6 AM EDT.  
 
 ```{r daily-activity, echo = FALSE}
+hourly <- daily_hourly[daily_hourly$day >= 5, ] %>% group_by(hour) %>% summarize(med = median(tot)) %>% as.data.frame()
 hourly$ord <- 0
 hourly[8:24, ]$ord <- 0:16
 hourly[1:7, ]$ord <- 17:23
-hourly$lab <- paste(hourly$hour %% 12, ifelse (hourly$hour < 12, "am", "pm"))
-hourly[hourly$hour == 0, "lab"] <- "12 am"
-hourly[hourly$hour == 12, "lab"] <- "12 pm"
+hourly$lab <- paste(hourly$hour %% 12, ifelse (hourly$hour < 12, "AM", "PM"))
+hourly[hourly$hour == 0, "lab"] <- "12 AM"
+hourly[hourly$hour == 12, "lab"] <- "12 PM"
 
 ggplot(data = hourly, aes(x=ord - 0.5, med)) + 
  geom_bar(fill="darkgreen", stat = "identity", width = 0.95) +
@@ -113,17 +113,17 @@ ggplot(data = hourly, aes(x=ord - 0.5, med)) +
   scale_y_continuous(limits = c(0, 300), expand= c(0, 0)) + 
   scale_x_continuous(labels = hourly[order(hourly$ord), ]$lab, breaks = 0:23, 
                      limits=c(-1, 23), expand = c(0.01, 0.01)) +
-  labs(x = "time", y = "tweets per hour", 
-       title = "#nbcfail Median Daily Tweets Per Hour")
+  labs(x = "Time", y = "Tweets / Hour", 
+       title = "#nbcfail Median Daily Tweets Per Hour\nBetween Aug 5 - Aug 11")
 ```
 
-During the opening ceremony, #nbcfail tweets peaked between 8 - 9pm ET.
+\#nbcfail tweets were most frequent during the opening ceremony. NBC aired the ceremony at 8 PM EDT. Hashtag usage peaked between 8 - 9 PM EDT.  
 
 ```{r during-opening, echo = FALSE}
 oc <- c("519", "520", "521", "522", "523", "600")
 dh$ord <- 0
 dh[dh$ts %in% oc, "ord"] <- 1:6
-l <- c(paste(7:11, "pm"), "12 am", "1 am")
+l <- c(paste(7:11, "PM"), "12 AM", "1 AM")
 
 ggplot(data = dh[dh$ts %in% oc,], aes(ord - 0.5, tot)) + 
   geom_bar(fill = "dodgerblue3", stat = "identity", width = 0.98) +
@@ -132,11 +132,10 @@ ggplot(data = dh[dh$ts %in% oc,], aes(ord - 0.5, tot)) +
     panel.grid.minor.x = element_blank()
   ) +
   scale_y_continuous(expand= c(0, 0), limits = c(0, 3500)) + 
-  # scale_x_continuous(labels = dh[dh$ts %in% oc, ]$lab, breaks = 0:5,
   scale_x_continuous(labels = l, breaks = 0:6,
                    #  limits=c(-1, 23),
                    expand = c(0.01, 0.01)) +
-  labs(x = "time", y = "tweets per hour", 
+  labs(x = "Time", y = "Tweets / Hour", 
        title = "#nbcfail Tweets Per Hour (During Opening Ceremony)")
 ```
 
@@ -155,7 +154,7 @@ nbco <- nbco[nbco$created >= t[nrow(t), ]$created, ]
 nbc <- rbind(nbc, nbco)
 ```
 
-In the timeframe we looked at, @nbc and @NBCOlympics had received a total of `r nrow(t[!is.na(t$replyToSN) & (t$replyToSN == "nbc" | t$replyToSN == "NBCOlympics"),])` tweets directed to them, containing the #nbcfail hashtag. And in that time, both accounts tweeted a combined `r nrow(nbc)` times, with `r nrow(nbc[!is.na(nbc$replyToSN), ])` tweets being @replies. `r nrow(nbc[!is.na(nbc$replyToSN) & nbc$screenName == 'nbc', ])` of those came from the @nbc handle. Here is a breakdown of the `r nrow(nbc[!is.na(nbc$replyToSN) & nbc$screenName == 'NBCOlympics', ])` @NBCOlympics replies.  
+In the timeframe we looked at, @nbc and @NBCOlympics had received a total of `r prettyNum(nrow(t[!is.na(t$replyToSN) & (t$replyToSN == "nbc" | t$replyToSN == "NBCOlympics"),]), big.mark=",")` tweets directed at them, containing the #nbcfail hashtag. And in that time, both accounts tweeted a combined `r prettyNum(nrow(nbc), big.mark=",")` times, with `r nrow(nbc[!is.na(nbc$replyToSN), ])` tweets being @replies. `r nrow(nbc[!is.na(nbc$replyToSN) & nbc$screenName == 'nbc', ])` of those came from the @nbc handle. Here is a breakdown of the `r nrow(nbc[!is.na(nbc$replyToSN) & nbc$screenName == 'NBCOlympics', ])` @NBCOlympics replies.  
 
 ```{r eval = FALSE, echo = FALSE}
 replies <- nbc %>% filter(!is.na(replyToSN) & screenName == "NBCOlympics") %>% group_by(replyToSN) %>% 
@@ -168,9 +167,9 @@ replies <- readRDS("dat/replies.dat")
 print(replies, row.names = FALSE)
 ```
 
-`r nrow(nbc[which(nbc$replyToSID %in% t$id), ])` of those replies were in fact to #nbcfail tweets. They reply "The race is LIVE tonight on @NBC, in Primetime" (twice) and "WATCH LIVE HERE: https://t.co/RMGFoodRbX" (twice). So out of `r nrow(t)` complaints, of which `r nrow(t[!is.na(t$replyToSN) & (t$replyToSN == "nbc" | t$replyToSN == "NBCOlympics"),])` were directly addressed to them, @nbc/\@NBCOlympics replied to `r nrow(nbc[which(nbc$replyToSID %in% t$id), ])` of them, or `r round(nrow(nbc[which(nbc$replyToSID %in% t$id), ]) / nrow(t) * 100, 2)`%. Given the volume of tweets, I wouldn't expect a reply to each of them, but I'm curious why they chose the 4 (and only 4) that they did.  
+`r nrow(nbc[which(nbc$replyToSID %in% t$id), ])` of those replies were in fact to #nbcfail tweets. They reply "The race is LIVE tonight on @NBC, in Primetime" (twice) and "WATCH LIVE HERE: https://t.co/RMGFoodRbX" (twice). So out of `r prettyNum(nrow(t), big.mark=",")` complaints, of which `r prettyNum(nrow(t[!is.na(t$replyToSN) & (t$replyToSN == "nbc" | t$replyToSN == "NBCOlympics"),]), big.mark=",")` were directly addressed to them, @nbc/\@NBCOlympics replied to `r nrow(nbc[which(nbc$replyToSID %in% t$id), ])` of them, or `r round(nrow(nbc[which(nbc$replyToSID %in% t$id), ]) / nrow(t) * 100, 2)`%. Given the volume of tweets, I wouldn't expect a reply to each of them, but I'm curious why they chose the 4 (and only 4) that they did.  
 
-For comparison, let's compare this to the recent outage that caused Delta to cancel hundreds of flights. There wasn't a particular hashtag in this situation, and we can't just take every tweet which mentions @delta. So our dataset will consist of all tweets directed to @Delta and @DeltaAssist on August 8th and 9th, under the assumption that most of these represent people needing assistance. 
+For context, let's compare that to the recent computer outage that caused Delta to cancel hundreds of flights. There wasn't a particular hashtag in this situation, and we can't just take every tweet which mentions @delta. So our dataset will consist of all tweets directed to @Delta and @DeltaAssist on August 8th and 9th[^2], under the assumption that most of these represent people needing assistance. 
 
 ```{r eval = FALSE, echo = FALSE}
 delta <- searchTwitter("to:delta", since="2016-08-08", until="2016-08-10", resultType = "recent", 
@@ -187,7 +186,7 @@ saveRDS(delta, "dat/delta.rds")
 delta <- readRDS("dat/delta.rds")
 ```
 
-There are `r nrow(delta)` tweets to Delta between Aug 8 - 9. Looking at the first few records confirms that these tweets are looking for a response. 
+There were `r prettyNum(nrow(delta), big.mark=",")` tweets to Delta between Aug 8 - 9. Looking at the first few records confirms that these tweets are looking for a response. 
 
 ```{r echo = FALSE}
 print(delta[1:3, ]$text, row.names = FALSE)
@@ -199,7 +198,7 @@ To get a sense of the situation, here's the tweets per hour breakdown.
 delta_hr <- delta %>% group_by(day = day(created), hour = hour(created)) %>% 
   summarize(tot = n()) %>% as.data.frame()
 delta_hr$ord <- seq_along(delta_hr$day)
-l <- c("Aug 7 8pm", "Aug 8 2am", "Aug 8 8am", "Aug 8 2pm", "Aug 8 8pm", "Aug 9 2am", "Aug 9 8am", "Aug 9 2pm", "Aug 9 8pm")
+l <- c("Aug 7, 8 PM", "Aug 8, 2 AM", "Aug 8, 8 AM", "Aug 8, 2 PM", "Aug 8, 8 PM", "Aug 9, 2 AM", "Aug 9, 8 AM", "Aug 9, 2 PM", "Aug, 9 8 PM")
 
 ggplot(data = delta_hr, aes(ord - 4.5, tot)) +
   geom_bar(stat = "identity", fill = "firebrick3") +
@@ -210,8 +209,8 @@ ggplot(data = delta_hr, aes(ord - 4.5, tot)) +
   ) +
   scale_y_continuous(limits = c(0, 800), expand= c(0, 0)) + 
  scale_x_continuous(breaks = seq(-4, 44, by=6), 
-                    labels = l, expand = c(0.01, 0.01))   
-  labs(x = "time", y = "tweets per hour", 
+                    labels = l, expand = c(0.01, 0.01)) +
+  labs(x = "Time", y = "Tweets / Hour", 
        title = "Tweets To @Delta, @DeltaAssist Per Hour")
 ```
 
@@ -229,7 +228,9 @@ saveRDS(fromDelta, "dat/fromDelta.rds")
 fromDelta <- readRDS("dat/fromDelta.rds")
 ```
 
-Now we'll examine the rate of reply from @Delta and @DeltaAssist. During the 2-day span,both handles sent a combined `r nrow(fromDelta)` replies. That amounts to a `r round(nrow(fromDelta)/nrow(delta)*100, 2)`% reply rate.  (todo confirm that replies are to dataset)
+Now we'll examine the rate of reply from @Delta and @DeltaAssist. During the 2-day span, both handles sent a combined `r prettyNum(nrow(fromDelta), big.mark=",")` replies, and `r prettyNum(nrow(fromDelta[which(fromDelta$replyToSID %in% delta$id), ]), big.mark=",")` were in response to tweets in our dataset. That amounts to at least a `r round(nrow(fromDelta[which(fromDelta$replyToSID %in% delta$id), ])/nrow(delta)*100, 2)`% reply rate, thought its likely higher[^1].
+
+
 
 We can also see that Delta's replies include a signature at the end of the tweets, and there appear to be `r length(unique(stringr::str_extract(fromDelta$text, "[*]..")))` staffers signing off as @Delta/\@DeltaAssist.
 
@@ -237,6 +238,11 @@ We can also see that Delta's replies include a signature at the end of the tweet
 print(fromDelta[1, ]$text, row.names = FALSE)
 ```
 
-Certainly I wouldn't expect a network to treat complaints about TV coverage with the same urgency an airline treats messages about flight cancellations; I just thought it would be an interesting exercise. But it's clear that Delta is managing its Twitter handle with a team that's concerned about customer service. The same can't be said about NBC. Maybe they think that because they own exclusive broadcast rights, they don't need to reply to complaints, whereas Delta is concerned about losing customers to other airlines.  
+####Conclusion####
+Certainly I wouldn't expect a network to treat complaints about TV coverage with the same urgency an airline treats messages about flight cancellations; I just thought it would be an interesting exercise. But its clear that Delta is managing its Twitter handle with a team that's concerned about customer service. The same can't be said about NBC. Maybe they think that because they own exclusive broadcast rights, they don't need to reply to complaints, whereas Delta is concerned about losing customers to other airlines. Whatever the reasons, the contrast is glaring.  
 
-Code available here: 
+**Code and data available here:** https://github.com/jwillage/nbcfail
+
+[^1]: All times Eastern, UTC-4:00
+[^2]: Delta first reported the outage at Aug 8, 5:04 AM https://twitter.com/DeltaNewsHub/status/762575247111520257
+[^1]: The calculated number of replies is the number of Delta replies in the *dataset*. its likely they replied to more tweets after the window of the data pull. 
