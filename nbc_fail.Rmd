@@ -9,8 +9,8 @@ output:
 
 ```{r, warning=FALSE, include=FALSE, message=FALSE}
 library(knitr)
-opts_chunk$set(echo = TRUE, cache = TRUE, cache.path = "cache/", comment = NA, warning = FALSE,
-               fig.path = "figure/", fig.width = 9, fig.height = 7)
+opts_chunk$set(echo = TRUE, cache = TRUE, cache.path = "cache_edit/", comment = NA, warning = FALSE,
+               fig.path = "figure_edit/", fig.width = 9, fig.height = 7)
 ```
 
 NBC has taken a lot of heat in the past week for its coverage of the Olympics, to which they have exclusive broadcast rights. Criticisms have ranged from tape delays, to nationality bias, to commercial frequency, to gender bias. The collective outrage has spawned the popularity of an #nbcfail hashtag on Twitter, which first appeared during the 2012 games. Here we'll explore NBC's responsivenes to the hashtag. First, let's analyze its usage.  
@@ -30,6 +30,7 @@ setup_twitter_oauth(readLines("consumer.key"),
                     readLines("consumer.secret"),
                     readLines("access.token"),
                     readLines("access.secret"))
+#original 3 data pulls
 last.10k <- searchTwitter("#nbcfail", n=10000, resultType = "recent")
 last.20k <- searchTwitter("#nbcfail", n=10000, resultType = "recent", 
                           maxID =last.10k[[length(last.10k)]]$id)
@@ -38,7 +39,9 @@ last.30k <- searchTwitter("#nbcfail", n=10000, resultType = "recent",
 tweets <- c(last.10k, last.20k, last.30k)
 tweets <- data.frame(matrix(unlist(tweets), nrow = length(tweets), byrow = TRUE))
 t <- map_df(tweets, as.data.frame)
-#saveRDS(tweets, "dat/tweets.rds")
+#updates
+tweets.816 <- searchTwitter("#nbcfail", n=10000, resultType = "recent", sinceID = t[1, ]$id)
+t <- rbind(map_df(tweets.816, as.data.frame), t)
 saveRDS(t, "dat/t.rds")
 ```
 
@@ -53,7 +56,7 @@ Tweets were pulled at Aug 11, 4 PM and go back to Aug 2, 2 PM. So that's where t
 daily_hourly <- df.time %>% group_by(day = day(created ), hour = hour(created )) %>% 
   summarize(tot = n()) %>% as.data.frame()
 
-ref <- data.frame(day = rep(2:11, each=24), hour = rep(0:23, 10))
+ref <- data.frame(day = rep(2:16, each=24), hour = rep(0:23, 15))
 ref <- ref[-(1:4), ]
 dh <- left_join(ref, daily_hourly, by = c("day" = "day", "hour" = "hour"))
 dh[is.na(dh$tot), "tot"] <- 0
@@ -67,8 +70,8 @@ ggplot(data = dh, aes(ts, tot)) +
     panel.grid.minor.x = element_blank()
   ) +
   scale_y_continuous(limits = c(0, 3500), expand= c(0, 0)) + 
-  scale_x_discrete(breaks = c("204", "304", "404", "504", "604", "704", "804", "904", "1004", "1104", "1204"),
-                   labels = paste("Aug", 2:12)) +
+  scale_x_discrete(breaks = paste0(2:16, "04"),
+                   labels = paste("Aug", 2:16)) +
   labs(x = "Date", y = "Tweets / Hour", 
        title = "#nbcfail Tweets Per Hour")
 ```
@@ -77,16 +80,15 @@ The biggest spike in #nbcfail tweets is during the opening ceremony, on the even
 
 ```{r except-opening, echo = FALSE}
 ggplot(data = dh, aes(ts, tot)) + 
-  #geom_histogram(binwidth = 60 * 60, fill = "dodgerblue3") +
   geom_bar(fill="dodgerblue3", color="dodgerblue3", stat = "identity") +
   theme_light() +
   theme(
     axis.text.x=element_text(angle=45, hjust=1, vjust=1),
     panel.grid.minor.x = element_blank()
   ) +
-  scale_y_continuous(limits = c(0, 350), expand= c(0, 0)) + 
-  scale_x_discrete(breaks = c("204", "304", "404", "504", "604", "704", "804", "904", "1004", "1104", "1204"),
-                   labels = paste("Aug", 2:12), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 400), expand= c(0, 0)) + 
+  scale_x_discrete(breaks = paste0(2:16, "04"),
+                   labels = paste("Aug", 2:16), expand = c(0, 0)) +
   labs(x = "Date", y = "Tweets / Hour", 
        title = "#nbcfail Tweets Per Hour (Excluding Opening Ceremony)")
 ```
@@ -143,17 +145,22 @@ ggplot(data = dh[dh$ts %in% oc,], aes(ord - 0.5, tot)) +
 
 ```{r eval = FALSE, echo = FALSE}
 nbc <- map_df(userTimeline('NBC', includeRts = TRUE, n = 1000), as.data.frame)
+nbc.816 <- map_df(userTimeline('NBC', includeRts = TRUE, n = 1000, sinceID = nbc[1, ]$id),
+                 as.data.frame)
+nbc <- rbind(nbc.816, nbc)
 saveRDS(nbc, "dat/nbc.rds")
 nbco <- map_df(userTimeline('NBCOlympics', includeRts = TRUE, n = 3200), as.data.frame)
+nbco.816 <- map_df(userTimeline('NBCOlympics', includeRts = TRUE, n = 3200, sinceID = nbco[1, ]$id), 
+                   as.data.frame)
+nbco <- rbind(nbco.816, nbco)
 saveRDS(nbco, "dat/nbco.rds")
 ```
 
 ```{r include = FALSE}
 nbc <- readRDS("dat/nbc.rds")
-nbc <- nbc[nbc$created >= t[nrow(t), ]$created, ]
 nbco <- readRDS("dat/nbco.rds")
-nbco <- nbco[nbco$created >= t[nrow(t), ]$created, ]
 nbc <- rbind(nbc, nbco)
+nbc <- nbc[nbc$created >= t[nrow(t), ]$created, ] 
 ```
 
 In the timeframe we looked at, @nbc and @NBCOlympics had received a total of `r prettyNum(nrow(t[!is.na(t$replyToSN) & (t$replyToSN == "nbc" | t$replyToSN == "NBCOlympics"),]), big.mark=",")` tweets directed at them, containing the #nbcfail hashtag. And in that time, both accounts tweeted a combined `r prettyNum(nrow(nbc), big.mark=",")` times, with `r nrow(nbc[!is.na(nbc$replyToSN), ])` tweets being @replies. `r nrow(nbc[!is.na(nbc$replyToSN) & nbc$screenName == 'nbc', ])` of those came from the @nbc handle. Here is a breakdown of the `r nrow(nbc[!is.na(nbc$replyToSN) & nbc$screenName == 'NBCOlympics', ])` @NBCOlympics replies.  
@@ -164,8 +171,8 @@ replies <- nbc %>% filter(!is.na(replyToSN) & screenName == "NBCOlympics") %>% g
 saveRDS(replies, "dat/replies.dat")
 ```
 
-```{r echo = FALSE}
-replies <- readRDS("dat/replies.dat")
+```{r echo = FALSE} 
+replies <- readRDS("dat/replies.dat")  
 print(replies, row.names = FALSE)
 ```
 
@@ -247,4 +254,4 @@ Certainly I wouldn't expect a network to treat complaints about TV coverage with
 
 [^1]: All times Eastern, UTC-4:00
 [^2]: Delta first reported the outage at Aug 8, 5:04 AM https://twitter.com/DeltaNewsHub/status/762575247111520257
-[^1]: The calculated number of replies is the number of Delta replies in the *dataset*. its likely they replied to more tweets after the window of the data pull. 
+[^1]: The calculated number of replies is the number of Delta replies in the *dataset*. Its likely they replied to more tweets after the window of the data pull. 
