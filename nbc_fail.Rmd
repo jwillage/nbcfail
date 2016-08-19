@@ -9,8 +9,8 @@ output:
 
 ```{r, warning=FALSE, include=FALSE, message=FALSE}
 library(knitr)
-opts_chunk$set(echo = TRUE, cache = TRUE, cache.path = "cache_edit/", comment = NA, warning = FALSE,
-               fig.path = "figure_edit/", fig.width = 9, fig.height = 7)
+opts_chunk$set(echo = TRUE, cache = TRUE, cache.path = "cache/", comment = NA, warning = FALSE,
+               fig.path = "figure/", fig.width = 9, fig.height = 7)
 ```
 
 NBC has taken a lot of heat in the past week for its coverage of the Olympics, to which they have exclusive broadcast rights. Criticisms have ranged from tape delays, to nationality bias, to commercial frequency, to gender bias. The collective outrage has spawned the popularity of an #nbcfail hashtag on Twitter, which first appeared during the 2012 games. Here we'll explore NBC's responsivenes to the hashtag. First, let's analyze its usage.  
@@ -42,6 +42,8 @@ t <- map_df(tweets, as.data.frame)
 #updates
 tweets.816 <- searchTwitter("#nbcfail", n=10000, resultType = "recent", sinceID = t[1, ]$id)
 t <- rbind(map_df(tweets.816, as.data.frame), t)
+tweets.819 <- searchTwitter("#nbcfail", n=10000, resultType = "recent", sinceID = t[1, ]$id)
+t <- rbind(map_df(tweets.819, as.data.frame), t)
 saveRDS(t, "dat/t.rds")
 ```
 
@@ -56,7 +58,7 @@ Tweets were pulled at Aug 11, 4 PM and go back to Aug 2, 2 PM. So that's where t
 daily_hourly <- df.time %>% group_by(day = day(created ), hour = hour(created )) %>% 
   summarize(tot = n()) %>% as.data.frame()
 
-ref <- data.frame(day = rep(2:16, each=24), hour = rep(0:23, 15))
+ref <- data.frame(day = rep(2:19, each=24), hour = rep(0:23, 18))
 ref <- ref[-(1:4), ]
 dh <- left_join(ref, daily_hourly, by = c("day" = "day", "hour" = "hour"))
 dh[is.na(dh$tot), "tot"] <- 0
@@ -70,8 +72,8 @@ ggplot(data = dh, aes(ts, tot)) +
     panel.grid.minor.x = element_blank()
   ) +
   scale_y_continuous(limits = c(0, 3500), expand= c(0, 0)) + 
-  scale_x_discrete(breaks = paste0(2:16, "04"),
-                   labels = paste("Aug", 2:16)) +
+  scale_x_discrete(breaks = paste0(2:19, "04"),
+                   labels = paste("Aug", 2:19)) +
   labs(x = "Date", y = "Tweets / Hour", 
        title = "#nbcfail Tweets Per Hour")
 ```
@@ -87,8 +89,8 @@ ggplot(data = dh, aes(ts, tot)) +
     panel.grid.minor.x = element_blank()
   ) +
   scale_y_continuous(limits = c(0, 400), expand= c(0, 0)) + 
-  scale_x_discrete(breaks = paste0(2:16, "04"),
-                   labels = paste("Aug", 2:16), expand = c(0, 0)) +
+  scale_x_discrete(breaks = paste0(2:19, "04"),
+                   labels = paste("Aug", 2:19), expand = c(0, 0)) +
   labs(x = "Date", y = "Tweets / Hour", 
        title = "#nbcfail Tweets Per Hour (Excluding Opening Ceremony)")
 ```
@@ -148,11 +150,17 @@ nbc <- map_df(userTimeline('NBC', includeRts = TRUE, n = 1000), as.data.frame)
 nbc.816 <- map_df(userTimeline('NBC', includeRts = TRUE, n = 1000, sinceID = nbc[1, ]$id),
                  as.data.frame)
 nbc <- rbind(nbc.816, nbc)
+nbc.819 <- map_df(userTimeline('NBC', includeRts = TRUE, n = 1000, sinceID = nbc[1, ]$id),
+                 as.data.frame)
+nbc <- rbind(nbc.819, nbc)
 saveRDS(nbc, "dat/nbc.rds")
 nbco <- map_df(userTimeline('NBCOlympics', includeRts = TRUE, n = 3200), as.data.frame)
 nbco.816 <- map_df(userTimeline('NBCOlympics', includeRts = TRUE, n = 3200, sinceID = nbco[1, ]$id), 
                    as.data.frame)
 nbco <- rbind(nbco.816, nbco)
+nbco.819 <- map_df(userTimeline('NBCOlympics', includeRts = TRUE, n = 3200, sinceID = nbco[1, ]$id), 
+                   as.data.frame)
+nbco <- rbind(nbco.819, nbco)
 saveRDS(nbco, "dat/nbco.rds")
 ```
 
