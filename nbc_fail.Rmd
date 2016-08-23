@@ -44,6 +44,8 @@ tweets.816 <- searchTwitter("#nbcfail", n=10000, resultType = "recent", sinceID 
 t <- rbind(map_df(tweets.816, as.data.frame), t)
 tweets.819 <- searchTwitter("#nbcfail", n=10000, resultType = "recent", sinceID = t[1, ]$id)
 t <- rbind(map_df(tweets.819, as.data.frame), t)
+tweets.822 <- searchTwitter("#nbcfail", n=10000, resultType = "recent", sinceID = t[1, ]$id)
+t <- rbind(map_df(tweets.822, as.data.frame), t)
 saveRDS(t, "dat/t.rds")
 ```
 
@@ -52,13 +54,13 @@ t <- readRDS("dat/t.rds")
 df.time <- data.frame(created = t$created - 60*60*4)
 ```
 
-Tweets were pulled at Aug 11, 4 PM and go back to Aug 2, 2 PM. So that's where the data cuts off[^1]. We captured `r prettyNum(nrow(t), big.mark=",")` tweets in that span. 
+Tweets were pulled from Aug 2 to Aug 22, so that's where the data cuts off[^1]. We captured `r prettyNum(nrow(t), big.mark=",")` tweets in that span. 
 
 ```{r full, echo = FALSE}
 daily_hourly <- df.time %>% group_by(day = day(created ), hour = hour(created )) %>% 
   summarize(tot = n()) %>% as.data.frame()
 
-ref <- data.frame(day = rep(2:19, each=24), hour = rep(0:23, 18))
+ref <- data.frame(day = rep(2:22, each=24), hour = rep(0:23, 21))
 ref <- ref[-(1:4), ]
 dh <- left_join(ref, daily_hourly, by = c("day" = "day", "hour" = "hour"))
 dh[is.na(dh$tot), "tot"] <- 0
@@ -72,8 +74,8 @@ ggplot(data = dh, aes(ts, tot)) +
     panel.grid.minor.x = element_blank()
   ) +
   scale_y_continuous(limits = c(0, 3500), expand= c(0, 0)) + 
-  scale_x_discrete(breaks = paste0(2:19, "04"),
-                   labels = paste("Aug", 2:19)) +
+  scale_x_discrete(breaks = paste0(2:22, "04"),
+                   labels = paste("Aug", 2:22)) +
   labs(x = "Date", y = "Tweets / Hour", 
        title = "#nbcfail Tweets Per Hour")
 ```
@@ -89,22 +91,22 @@ ggplot(data = dh, aes(ts, tot)) +
     panel.grid.minor.x = element_blank()
   ) +
   scale_y_continuous(limits = c(0, 400), expand= c(0, 0)) + 
-  scale_x_discrete(breaks = paste0(2:19, "04"),
-                   labels = paste("Aug", 2:19), expand = c(0, 0)) +
+  scale_x_discrete(breaks = paste0(2:22, "04"),
+                   labels = paste("Aug", 2:22), expand = c(0, 0)) +
   labs(x = "Date", y = "Tweets / Hour", 
        title = "#nbcfail Tweets Per Hour (Excluding Opening Ceremony)")
 ```
 
 
-We can see that there was some use of the #nbcfail hashtag even before the opening ceremony. The tweets from Aug 3 up to the night of Aug 5 were mostly about the 1-hour delay that NBC announced. There were also a handful of tweets speculating on the resurgance of the #nbcfail hashtag, and complaints about commercials cutting into a soccer game (Olympic soccer started prior to the opening ceremony).  
+We can see that there was some use of the #nbcfail hashtag even before the opening ceremony. The tweets from Aug 2 up to the night of Aug 5 were mostly about the 1-hour delay that NBC announced. There were also a handful of tweets speculating on the resurgance of the #nbcfail hashtag, and complaints about commercials cutting into a soccer game (Olympic soccer started prior to the opening ceremony).  
 
-In the days after the opening ceremony, the hashtag's frequency roughly follows this trend: increases throughout the day, peaking during primetime coverage, and then dying down starting at midnight, reaching its lowest volume around 6 AM EDT.  
+In the days after the opening ceremony, the hashtag's frequency roughly follows this trend: increases throughout the day, peaking during primetime coverage, and then dying down starting at midnight, reaching its lowest volume around 5 AM EDT.  
 
 ```{r daily-activity, echo = FALSE}
 hourly <- daily_hourly[daily_hourly$day >= 5, ] %>% group_by(hour) %>% summarize(med = median(tot)) %>% as.data.frame()
 hourly$ord <- 0
-hourly[8:24, ]$ord <- 0:16
-hourly[1:7, ]$ord <- 17:23
+hourly[7:24, ]$ord <- 0:17
+hourly[1:6, ]$ord <- 18:23
 hourly$lab <- paste(hourly$hour %% 12, ifelse (hourly$hour < 12, "AM", "PM"))
 hourly[hourly$hour == 0, "lab"] <- "12 AM"
 hourly[hourly$hour == 12, "lab"] <- "12 PM"
@@ -116,7 +118,7 @@ ggplot(data = hourly, aes(x=ord - 0.5, med)) +
    axis.text.x=element_text(angle = 45, hjust=1, vjust=1),
     panel.grid.minor.x = element_blank()
   ) +
-  scale_y_continuous(limits = c(0, 300), expand= c(0, 0)) + 
+  scale_y_continuous(limits = c(0, 175), expand= c(0, 0)) + 
   scale_x_continuous(labels = hourly[order(hourly$ord), ]$lab, breaks = 0:23, 
                      limits=c(-1, 23), expand = c(0.01, 0.01)) +
   labs(x = "Time", y = "Tweets / Hour", 
@@ -127,6 +129,7 @@ ggplot(data = hourly, aes(x=ord - 0.5, med)) +
 
 ```{r during-opening, echo = FALSE}
 oc <- c("519", "520", "521", "522", "523", "600")
+cc <- c("2120", "2121", "2122", "2123", "2200", "2201")
 dh$ord <- 0
 dh[dh$ts %in% oc, "ord"] <- 1:6
 l <- c(paste(7:11, "PM"), "12 AM", "1 AM")
@@ -145,6 +148,8 @@ ggplot(data = dh[dh$ts %in% oc,], aes(ord - 0.5, tot)) +
        title = "#nbcfail Tweets Per Hour (During Opening Ceremony)")
 ```
 
+There's an interesting comparison between the opening and closing ceremony. The opening ceremony was watched by 26.5 million viewers, and the closing ceremony watched by 16.85 million viewers[^2]. That's a `r round((1 - 16.85/26.5)*100, 0)`% decrease in viewers. However, the amount of #nbcfail tweets dropped unproportionally, by `r round((1- (sum(dh[dh$ts %in% cc,]$tot) /sum(dh[dh$ts %in% oc,]$tot)))*100, 0)`%. Whether that's due to an actual shift in attitude towards NBC's coverage, or a waning interest as the Games close, it's hard to say.  
+
 ```{r eval = FALSE, echo = FALSE}
 nbc <- map_df(userTimeline('NBC', includeRts = TRUE, n = 1000), as.data.frame)
 nbc.816 <- map_df(userTimeline('NBC', includeRts = TRUE, n = 1000, sinceID = nbc[1, ]$id),
@@ -153,6 +158,9 @@ nbc <- rbind(nbc.816, nbc)
 nbc.819 <- map_df(userTimeline('NBC', includeRts = TRUE, n = 1000, sinceID = nbc[1, ]$id),
                  as.data.frame)
 nbc <- rbind(nbc.819, nbc)
+nbc.822 <- map_df(userTimeline('NBC', includeRts = TRUE, n = 1000, sinceID = nbc[1, ]$id),
+                 as.data.frame)
+nbc <- rbind(nbc.822, nbc)
 saveRDS(nbc, "dat/nbc.rds")
 nbco <- map_df(userTimeline('NBCOlympics', includeRts = TRUE, n = 3200), as.data.frame)
 nbco.816 <- map_df(userTimeline('NBCOlympics', includeRts = TRUE, n = 3200, sinceID = nbco[1, ]$id), 
@@ -161,6 +169,9 @@ nbco <- rbind(nbco.816, nbco)
 nbco.819 <- map_df(userTimeline('NBCOlympics', includeRts = TRUE, n = 3200, sinceID = nbco[1, ]$id), 
                    as.data.frame)
 nbco <- rbind(nbco.819, nbco)
+nbco.822 <- map_df(userTimeline('NBCOlympics', includeRts = TRUE, n = 3200, sinceID = nbco[1, ]$id), 
+                   as.data.frame)
+nbco <- rbind(nbco.822, nbco)
 saveRDS(nbco, "dat/nbco.rds")
 ```
 
@@ -186,7 +197,7 @@ print(replies, row.names = FALSE)
 
 `r nrow(nbc[which(nbc$replyToSID %in% t$id), ])` of those replies were in fact to #nbcfail tweets. They reply "The race is LIVE tonight on @NBC, in Primetime" (twice) and "WATCH LIVE HERE: https://t.co/RMGFoodRbX" (twice). So out of `r prettyNum(nrow(t), big.mark=",")` complaints, of which `r prettyNum(nrow(t[!is.na(t$replyToSN) & (t$replyToSN == "nbc" | t$replyToSN == "NBCOlympics"),]), big.mark=",")` were directly addressed to them, @nbc/\@NBCOlympics replied to `r nrow(nbc[which(nbc$replyToSID %in% t$id), ])` of them, or `r round(nrow(nbc[which(nbc$replyToSID %in% t$id), ]) / nrow(t) * 100, 2)`%. Given the volume of tweets, I wouldn't expect a reply to each of them, but I'm curious why they chose the 4 (and only 4) that they did.  
 
-For context, let's compare that to the recent computer outage that caused Delta to cancel hundreds of flights. There wasn't a particular hashtag in this situation, and we can't just take every tweet which mentions @delta. So our dataset will consist of all tweets directed to @Delta and @DeltaAssist on August 8th and 9th[^2], under the assumption that most of these represent people needing assistance. 
+For context, let's compare that to the recent computer outage that caused Delta to cancel hundreds of flights. There wasn't a particular hashtag in this situation, and we can't just take every tweet which mentions @delta. So our dataset will consist of all tweets directed to @Delta and @DeltaAssist on August 8th and 9th[^3], under the assumption that most of these represent people needing assistance. 
 
 ```{r eval = FALSE, echo = FALSE}
 delta <- searchTwitter("to:delta", since="2016-08-08", until="2016-08-10", resultType = "recent", 
@@ -245,7 +256,7 @@ saveRDS(fromDelta, "dat/fromDelta.rds")
 fromDelta <- readRDS("dat/fromDelta.rds")
 ```
 
-Now we'll examine the rate of reply from @Delta and @DeltaAssist. During the 2-day span, both handles sent a combined `r prettyNum(nrow(fromDelta), big.mark=",")` replies, and `r prettyNum(nrow(fromDelta[which(fromDelta$replyToSID %in% delta$id), ]), big.mark=",")` were in response to tweets in our dataset. That amounts to at least a `r round(nrow(fromDelta[which(fromDelta$replyToSID %in% delta$id), ])/nrow(delta)*100, 2)`% reply rate, thought its likely higher[^1].
+Now we'll examine the rate of reply from @Delta and @DeltaAssist. During the 2-day span, both handles sent a combined `r prettyNum(nrow(fromDelta), big.mark=",")` replies, and `r prettyNum(nrow(fromDelta[which(fromDelta$replyToSID %in% delta$id), ]), big.mark=",")` were in response to tweets in our dataset. That amounts to at least a `r round(nrow(fromDelta[which(fromDelta$replyToSID %in% delta$id), ])/nrow(delta)*100, 2)`% reply rate, thought its likely higher[^4].
 
 
 
@@ -261,5 +272,6 @@ Certainly I wouldn't expect a network to treat complaints about TV coverage with
 **Code and data available here:** https://github.com/jwillage/nbcfail
 
 [^1]: All times Eastern, UTC-4:00
-[^2]: Delta first reported the outage at Aug 8, 5:04 AM https://twitter.com/DeltaNewsHub/status/762575247111520257
-[^1]: The calculated number of replies is the number of Delta replies in the *dataset*. Its likely they replied to more tweets after the window of the data pull. 
+[^2]: http://deadline.com/2016/08/olympics-closing-ceremony-ratings-down-from-london-2012-big-brother-nbc-1201806786, http://deadline.com/2016/08/olympics-opening-ceremony-ratings-fall-rio-nbc-gisele-bundchen-team-usa-1201799554/ 
+[^3]: Delta first reported the outage at Aug 8, 5:04 AM https://twitter.com/DeltaNewsHub/status/762575247111520257
+[^4]: The calculated number of replies is the number of Delta replies in the *dataset*. Its likely they replied to more tweets after the window of the data pull. 
