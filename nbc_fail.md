@@ -4,7 +4,7 @@ August 11, 2016
 
 
 
-NBC has taken a lot of heat in the past week for its coverage of the Olympics, to which they have exclusive broadcast rights. Criticisms have ranged from tape delays, to nationality bias, to commercial frequency, to gender bias. The collective outrage has spawned the popularity of an #nbcfail hashtag on Twitter, which first appeared during the 2012 games. Here we'll explore NBC's responsivenes to the hashtag. First, let's analyze its usage.  
+NBC has taken a lot of heat in the past few weeks for its coverage of the Olympics, to which they have exclusive broadcast rights. Criticisms have ranged from tape delays, to nationality bias, to commercial frequency, to gender bias. The collective outrage has spawned the popularity of an #nbcfail hashtag on Twitter, which first appeared during the 2012 games. Here we'll explore NBC's responsivenes to the hashtag. First, let's analyze its usage.  
 
 
 
@@ -12,7 +12,7 @@ NBC has taken a lot of heat in the past week for its coverage of the Olympics, t
 
 
 
-Tweets were pulled from Aug 2 to Aug 22, so that's where the data cuts off[^1]. We captured 29,191 tweets in that span. 
+We captured 29,191 tweets from Aug 2 to Aug 22[^1]. This chart shows the hour-by-hour volume of tweets.
 
 ![](figure/full-1.png)
 
@@ -23,7 +23,7 @@ The biggest spike in #nbcfail tweets is during the opening ceremony, on the even
 
 We can see that there was some use of the #nbcfail hashtag even before the opening ceremony. The tweets from Aug 2 up to the night of Aug 5 were mostly about the 1-hour delay that NBC announced. There were also a handful of tweets speculating on the resurgance of the #nbcfail hashtag, and complaints about commercials cutting into a soccer game (Olympic soccer started prior to the opening ceremony).  
 
-In the days after the opening ceremony, the hashtag's frequency roughly follows this trend: increases throughout the day, peaking during primetime coverage, and then dying down starting at midnight, reaching its lowest volume around 5 AM EDT.  
+In the days after the opening ceremony, the hashtag's frequency roughly follows this trend: increases throughout the day, peaking during primetime coverage, and then dying down, reaching its lowest volume around 5 AM EDT.  
 
 ![](figure/daily-activity-1.png)
 
@@ -81,7 +81,7 @@ In the timeframe we looked at, @nbc and @NBCOlympics had received a total of 1,5
 
 4 of those replies were in fact to #nbcfail tweets. They reply "The race is LIVE tonight on @NBC, in Primetime" (twice) and "WATCH LIVE HERE: https://t.co/RMGFoodRbX" (twice). So out of 29,191 complaints, of which 1,571 were directly addressed to them, @nbc/\@NBCOlympics replied to 4 of them, or 0.01%. Given the volume of tweets, I wouldn't expect a reply to each of them, but I'm curious why they chose the 4 (and only 4) that they did.  
 
-For context, let's compare that to the recent computer outage that caused Delta to cancel hundreds of flights. There wasn't a particular hashtag in this situation, and we can't just take every tweet which mentions @delta. So our dataset will consist of all tweets directed to @Delta and @DeltaAssist on August 8th and 9th[^3], under the assumption that most of these represent people needing assistance. 
+For context, let's compare that to the recent computer outage that caused Delta to cancel hundreds of flights. There wasn't a particular hashtag in this situation, and we can't just take every tweet which mentions @delta. So our dataset consists of all tweets directed to @Delta and @DeltaAssist on August 8th and 9th[^3], under the assumption that most of these represent people needing assistance. 
 
 
 
@@ -117,7 +117,7 @@ We can also see that Delta's replies include a signature at the end of the tweet
 ```
 
 ####Conclusion####
-Certainly I wouldn't expect a network to treat complaints about TV coverage with the same urgency an airline treats messages about flight cancellations; I just thought it would be an interesting exercise. But its clear that Delta is managing its Twitter handle with a team that's concerned about customer service. The same can't be said about NBC. Maybe they think that because they own exclusive broadcast rights, they don't need to reply to complaints, whereas Delta is concerned about losing customers to other airlines. Whatever the reasons, the contrast is glaring.  
+Certainly I wouldn't expect a network to treat complaints about TV coverage with the same urgency an airline treats messages about flight cancellations; I just though it would be an interesting exercise. But its clear that Delta is managing its Twitter handle with a team that's concerned about customer service. The same can't be said about NBC. Maybe they think that because they own exclusive broadcast rights, they don't need to reply to complaints, whereas Delta is concerned about losing customers to other airlines. Whatever the reasons, the contrast is glaring.  
 
 **Code and data available here:** https://github.com/jwillage/nbcfail
 
